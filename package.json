@@ -1,0 +1,22 @@
+{
+  "name": "poster-customizer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Siam-Halloween poster customizer: upload a poster, add text, objectives and a character image, then export a PNG at the original resolution.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "konva": "^9.3.18",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-konva": "^19.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "vite": "^6.3.5"
+  }
+}
