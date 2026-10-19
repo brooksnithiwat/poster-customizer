@@ -149,6 +149,7 @@ export function createPhotoElement({ assetId, width, height, name }) {
     zoom: 1,
     panX: 0,
     panY: 0,
+    rotate: 0, // degrees, turns the photo inside the fixed frame
     flipX: false,
     crop: { ...NO_CROP },
   };

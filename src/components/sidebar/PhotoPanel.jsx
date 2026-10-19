@@ -1,5 +1,8 @@
 import { FileButton, RangeField, Section, Toggle } from '../ui/Controls.jsx';
 
+// Keeps the angle inside the slider's -180..180 range.
+const wrap180 = (deg) => ((((deg + 180) % 360) + 360) % 360) - 180;
+
 const ACCEPT = 'image/png,image/jpeg,image/webp';
 
 export default function PhotoPanel({ photo, getAsset, disabled, onUpload, onUpdate, onRemove }) {
@@ -33,9 +36,14 @@ export default function PhotoPanel({ photo, getAsset, disabled, onUpload, onUpda
             <RangeField label="ขยับแนวนอน" value={photo.panX} min={-1} max={1} step={0.01} onChange={set('panX')} />
             <RangeField label="ขยับแนวตั้ง" value={photo.panY} min={-1} max={1} step={0.01} onChange={set('panY')} />
           </div>
+          <RangeField label="Rotate" value={photo.rotate || 0} min={-180} max={180} step={1} onChange={set('rotate')} suffix="°" />
+          <div className="row wrap">
+            <button type="button" className="btn small" onClick={() => onUpdate(photo.id, { rotate: wrap180((photo.rotate || 0) - 90) })}>↺ 90°</button>
+            <button type="button" className="btn small" onClick={() => onUpdate(photo.id, { rotate: wrap180((photo.rotate || 0) + 90) })}>↻ 90°</button>
+          </div>
           <div className="row wrap">
             <Toggle label="Flip" checked={photo.flipX} onChange={set('flipX')} />
-            <button type="button" className="btn small" onClick={() => onUpdate(photo.id, { zoom: 1, panX: 0, panY: 0 })}>Reset framing</button>
+            <button type="button" className="btn small" onClick={() => onUpdate(photo.id, { zoom: 1, panX: 0, panY: 0, rotate: 0 })}>Reset framing</button>
           </div>
           <p className="hint">หมายเหตุ : สามารถกดลากรูปไปมาได้</p>
         </div>

@@ -4,6 +4,14 @@ import { getCoverView, getCroppedSource, getImageLayout } from '../../lib/geomet
 
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
+/** Extra scale so a photo rotated by `deg` inside its w x h frame still covers the whole frame. */
+function rotationCover(w, h, deg) {
+  const a = (deg * Math.PI) / 180;
+  const c = Math.abs(Math.cos(a));
+  const s = Math.abs(Math.sin(a));
+  return Math.max((w * c + h * s) / w, (w * s + h * c) / h);
+}
+
 /** Rounded-rect clip so the photo keeps the template box's corners. */
 function roundedClip(width, height, radius) {
   const r = Math.min(radius || 0, width / 2, height / 2);
@@ -26,6 +34,8 @@ export default function ImageNode({ el, asset, onChange }) {
   const img = asset?.img || null;
   const layout = img ? getImageLayout(el, img) : null;
   const drag = useRef(null);
+  const rotate = el.rotate || 0;
+  const cover = rotationCover(el.width, el.height, rotate);
 
   const handleDragStart = (e) => {
     const p = e.target.getStage().getPointerPosition();
@@ -38,9 +48,15 @@ export default function ImageNode({ el, asset, onChange }) {
     if (!start || !img) return;
     const p = node.getStage().getPointerPosition();
     const view = getCoverView(el, getCroppedSource(img, el.crop));
-    const k = node.getAbsoluteScale().x * view.scale; // screen px per source px
-    const dx = ((p.x - start.px) / k) * (el.flipX ? -1 : 1);
-    const dy = (p.y - start.py) / k;
+    // Pointer movement in frame px, then into the (rotated, enlarged) photo's own axes, then source px.
+    const abs = node.getAbsoluteScale().x;
+    const fx = (p.x - start.px) / abs;
+    const fy = (p.y - start.py) / abs;
+    const a = (-rotate * Math.PI) / 180;
+    const ix = (fx * Math.cos(a) - fy * Math.sin(a)) / cover;
+    const iy = (fx * Math.sin(a) + fy * Math.cos(a)) / cover;
+    const dx = (ix / view.scale) * (el.flipX ? -1 : 1);
+    const dy = iy / view.scale;
     // Dragging right shows more of the left side of the photo, hence the minus.
     onChange(
       el.id,
@@ -68,15 +84,16 @@ export default function ImageNode({ el, asset, onChange }) {
     >
       <Rect width={el.width} height={el.height} fill="transparent" />
       {layout ? (
-        <KImage
-          image={img}
-          crop={layout.crop}
-          x={el.flipX ? layout.x + layout.width : layout.x}
-          y={layout.y}
-          width={layout.width}
-          height={layout.height}
-          scaleX={el.flipX ? -1 : 1}
-        />
+        <Group x={el.width / 2} y={el.height / 2} rotation={rotate} scaleX={cover * (el.flipX ? -1 : 1)} scaleY={cover}>
+          <KImage
+            image={img}
+            crop={layout.crop}
+            x={layout.x - el.width / 2}
+            y={layout.y - el.height / 2}
+            width={layout.width}
+            height={layout.height}
+          />
+        </Group>
       ) : (
         <Group name="ui-only">
           <Rect width={el.width} height={el.height} stroke="#ff5d73" strokeWidth={2} dash={[8, 6]} fill="rgba(255,93,115,0.12)" />

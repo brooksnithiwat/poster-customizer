@@ -133,7 +133,7 @@ export default function App() {
         commit((els) => {
           const existing = els.find((el) => el.type === 'image');
           if (!existing) return [photo, ...els]; // sits right above the template, below text and ticks
-          return els.map((el) => (el === existing ? { ...photo, id: existing.id, flipX: existing.flipX } : el));
+          return els.map((el) => (el === existing ? { ...photo, id: existing.id, flipX: existing.flipX, rotate: existing.rotate } : el));
         });
       } catch (err) {
         notify(err.message, 'error');
